@@ -1,40 +1,12 @@
-
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Distance Matrix service</title>
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-
-      #map-canvas {
-        height: 100%;
-        width: 50%;
-      }
-      #content-pane {
-        float:right;
-        width:48%;
-        padding-left: 2%;
-      }
-      #outputDiv {
-      }
-    </style>
-    <script>
-var theStart=document.getElementById("startPoint");
-
 function startPrice()
 {
-startPrice = 4; // document.getElementById("startFare").value;
+startPrice = document.getElementById("startFare").value;
 // document.getElementById("destination").value = startPrice;
 return startPrice;
 }
 function perMile()
 {
-perMile = 1; // document.getElementById("perMile").value;
+perMile = document.getElementById("perMile").value;
 return perMile;
 }
 
@@ -51,6 +23,7 @@ if (navigator.geolocation)
    theStart.innerHTML="Geolocation is not supported by this browser.";
    }
 }
+
 function showPosition(position)
   {
    var latlon=position.coords.latitude.toFixed(4)+", "+position.coords.longitude.toFixed(4);
@@ -58,18 +31,10 @@ function showPosition(position)
    document.getElementById("startPoint").value=latlon;
   }
 
-var map;
-var geocoder;
-var bounds = new google.maps.LatLngBounds();
-var markersArray = [];
-
-var destinationIcon = 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=End|FF0000|000000';
-var originIcon = 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=Start|00FF00|000000';
-
 function initialize() {
   var opts = {
-    center: new google.maps.LatLng(52.4,-1.9),
-    zoom: 11
+    center: new google.maps.LatLng(53.4,-1.9),
+    zoom: 10
   };
   map = new google.maps.Map(document.getElementById('map-canvas'), opts);
   geocoder = new google.maps.Geocoder();
@@ -100,8 +65,8 @@ function callback(response, status) {
     var outputDiv = document.getElementById('outputDiv');
     outputDiv.innerHTML = '';
     deleteOverlays();
-    startPrice = 4; // startPrice();
-    perMile = 1; // perMile();
+    startPrice = startPrice();
+    perMile = perMile();
 
     for (var i = 0; i < origins.length; i++) {
       var results = response.rows[i].elements;
@@ -149,25 +114,3 @@ function deleteOverlays() {
   }
   markersArray = [];
 }
-
-google.maps.event.addDomListener(window, 'load', initialize);
-
-    </script>
-  </head>
-  <body onLoad="getLocation();">
-    <div id="content-pane">
-      <div id="inputs">
-        <p>
-        <span id="theStart">Determining location...</span><br />
-        Start point: <input type="text" name="startPoint" id="startPoint" value="Hold on...">(or enter an address / town / postcode)<br />
-        Destination: <input type="text" name="destination" id="destination" value=""><br />
-        Rate: &pound;<input type="text" size="2" name="startFare" id="startFare" value="4" disabled> initially plus &pound;<input type="text" size="2" name="perMile" id="startFare" value="1" disabled> per mile<br />
-<!--         <input type="button" onclick="calculateDistances(startPoint.value, destination.value, startFare.value, perMile.value)" value="Estimate fare"/> -->
-        <input type="button" onclick="calculateDistances(startPoint.value, destination.value)" value="Estimate fare"/>
-          </p>
-      </div>
-      <div id="outputDiv"></div>
-    </div>
-    <div id="map-canvas"></div>
-  </body>
-</html>
