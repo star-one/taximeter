@@ -6,12 +6,18 @@
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
     <style>
       html, body {
-        height: 150%;
+        height: 100%;
         font-family: Helvetica, Arial, sans serif;
+        margin: 5px;
+      }
+      h1 {
+      font-size: 1.5em;
+      padding: 0px;
+      margin: 0px;
       }
 
       #map-canvas {
-        height: 100%;
+        height: 70%;
         width: 90%;
       }
       #content-pane {
@@ -23,12 +29,13 @@
       }
     </style>
     <script>
-var theStart=document.getElementById("startPoint");
+var theStart = document.getElementById("startPoint");
+var minFare = 3;
+var perMile = 1;
 
-function startPrice()
+function minFare()
 {
-startPrice = 4; // document.getElementById("startFare").value;
-// document.getElementById("destination").value = startPrice;
+minFare = 3; // document.getElementById("minFare").value;
 return startPrice;
 }
 function perMile()
@@ -47,7 +54,7 @@ if (navigator.geolocation)
    }
    else
    {
-   theStart.innerHTML="Geolocation is not supported by this browser.";
+   theStart.innerHTML="Geolocation is not supported by this device.";
    }
 
   var opts = {
@@ -60,7 +67,6 @@ if (navigator.geolocation)
 function showPosition(position)
   {
    latlon=position.coords.latitude.toFixed(4)+", "+position.coords.longitude.toFixed(4);
-   document.getElementById("theStart").innerHTML="Located!";
    document.getElementById("startPoint").value=latlon;
 //   img_url="http://maps.googleapis.com/maps/api/staticmap?center="+latlon+"&zoom=14&size=400x300&sensor=false";
 //   document.getElementById("map-canvas").innerHTML="<img src='"+img_url+"'>";
@@ -83,9 +89,11 @@ function initialize() {
   geocoder = new google.maps.Geocoder();
 }
 
-function calculateDistances(startPoint, destination) {
+function calculateDistances(startPoint, destination, minFare, perMile) {
   var origin1 = startPoint;
   var destinationA = destination;
+  minFare = minFare;
+  perMile = perMile;
 
   var service = new google.maps.DistanceMatrixService();
   service.getDistanceMatrix(
@@ -108,19 +116,23 @@ function callback(response, status) {
     var outputDiv = document.getElementById('outputDiv');
     outputDiv.innerHTML = '';
     deleteOverlays();
-    startPrice = 4; // startPrice();
-    perMile = 1; // perMile();
+    minFare = 3; // minFare; // minFare(); // start price here is perMile less than the entered start proce
+    perMile = perMile; // perMile();
 
     for (var i = 0; i < origins.length; i++) {
       var results = response.rows[i].elements;
       addMarker(origins[i], false);
       for (var j = 0; j < results.length; j++) {
         addMarker(destinations[j], true);
+        miles = results[j].distance.value * 0.000621371192; // convert kilometres from google to miles
+        estimatedPrice = miles * perMile + minFare; // calculate price
+        estimatedPrice = (Math.round(estimatedPrice * 2) / 2).toFixed(2); // round price to the nearest 50p, ie 0.5 of a pound (times and divide by 4 for 25p ie 0.25 of a pound
+        if(estimatedPrice < 4) {estimatedPrice = 4; }
         theResult = '<strong>Start:</strong> <em>' + origins[i] + '</em><br />'
             + '<strong>Destination:</strong> <em>' + destinations[j] + '</em><br />'
             + '<strong>Distance:</strong> <em>' + results[j].distance.text + '</em><br />'
             + '<strong>Journey time:</strong> <em>' + results[j].duration.text + '</em><br />'
-            + '<strong>Estimated fare:</strong> <em>&pound;' + (results[j].distance.value * 0.000621371192 * perMile + startPrice).toFixed(2) + '<br />';
+            + '<strong>Estimated fare:</strong> <em>&pound;' + estimatedPrice + '<br />';
         outputDiv.innerHTML += theResult;
       }
     }
@@ -167,12 +179,11 @@ google.maps.event.addDomListener(window, 'load', initialize);
     <h1>Taxi fare estimator</h1>
       <div id="inputs">
         <p>
-        <span id="theStart">Determining location...</span><br />
-        Start point: <input type="text" name="startPoint" id="startPoint" value="Hold on...">(or enter an address / town / postcode)<br />
+        Start point: <input type="text" name="startPoint" id="startPoint" value="Locating..."><em>(or enter address)</em><br />
         Destination: <input type="text" name="destination" id="destination" value=""><br />
-        Rate: &pound;<input type="text" size="2" name="startFare" id="startFare" value="4" disabled> for the first mile then &pound;<input type="text" size="2" name="perMile" id="startFare" value="1" disabled> per mile<br />
-<!--         <input type="button" onclick="calculateDistances(startPoint.value, destination.value, startFare.value, perMile.value)" value="Estimate fare"/> -->
-        <input type="button" onclick="calculateDistances(startPoint.value, destination.value)" value="Estimate fare"/>
+        Rate: &pound;<input type="text" size="2" name="minFare" id="minFare" value="4"> for the first mile then &pound;<input type="text" size="2" name="perMile" id="startFare" value="1" disabled> per mile<br />
+       <input type="button" onclick="calculateDistances(startPoint.value, destination.value, minFare.value, perMile.value)" value="Estimate fare"/>
+<!--        <input type="button" onclick="calculateDistances(startPoint.value, destination.value)" value="Estimate fare"/> -->
           </p>
       </div>
       <div id="outputDiv"></div>
